@@ -4,7 +4,7 @@ import BuildingSprite from '../components/BuildingSprite';
 import QuizModal from '../components/QuizModal';
 import ReadingModal from '../components/ReadingModal';
 import { cardsForDomain, useGameStore } from '../game/store';
-import { appearanceStage, CATEGORY_LABEL, QUIZ_STAGE_LABEL, upgradeCost } from '../game/logic';
+import { appearanceStage, CATEGORY_LABEL, currentRound, QUIZ_STAGE_LABEL, upgradeCost } from '../game/logic';
 import type { Card, QuizCard, ReadingCard } from '../game/types';
 
 export default function BuildingDetail() {
@@ -70,7 +70,7 @@ export default function BuildingDetail() {
       </div>
 
       {activeCard && activeCard.type === 'quiz' && (
-        <QuizModal card={activeCard} round={map.round} onClose={() => setActiveCard(null)} />
+        <QuizModal card={activeCard} onClose={() => setActiveCard(null)} />
       )}
       {activeCard && activeCard.type === 'reading' && (
         <ReadingModal card={activeCard} onClose={() => setActiveCard(null)} />
@@ -80,11 +80,14 @@ export default function BuildingDetail() {
 }
 
 function QuizCardSummary({ card }: { card: QuizCard }) {
+  const daysLeft = card.due - currentRound();
   return (
     <>
       <span className="card-tile__badge">🧠 問答</span>
       <p>{card.question}</p>
-      <p className="muted">{QUIZ_STAGE_LABEL[card.stage]} · 連對 {card.streak}</p>
+      <p className="muted">
+        {QUIZ_STAGE_LABEL[card.stage]} · 連對 {card.streak} · {daysLeft <= 0 ? '今天可複習' : `${daysLeft} 天後可複習`}
+      </p>
     </>
   );
 }

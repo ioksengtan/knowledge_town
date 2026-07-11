@@ -56,6 +56,15 @@ export function reviewGain(combo: number): number {
   return 1 + Math.floor(combo / 3);
 }
 
+// "Round" is a real calendar day, not an answer count — see
+// docs/implementation-decisions.md. Using wall-clock time means due dates
+// always eventually arrive on their own, even if the player answers nothing.
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
+export function currentRound(): number {
+  return Math.floor(Date.now() / MS_PER_DAY);
+}
+
 export function applyQuizAnswer(card: QuizCard, correct: boolean, round: number): QuizCard {
   if (correct) {
     const streak = card.streak + 1;

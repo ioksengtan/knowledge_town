@@ -5,12 +5,15 @@ import { createSeedCards, createSeedDomains, createSeedMap, SEED_MAP_ID } from '
 import {
   applyQuizAnswer,
   categoryHash,
+  currentRound,
   expansionCost,
   INITIAL_LAND_CAPACITY,
   LAND_PER_EXPANSION,
   reviewGain,
   upgradeCost,
 } from './logic';
+
+export type AnswerQuizResult = { correct: boolean; gained: number; notDue: boolean };
 
 interface Actions {
   selectMap: (mapId: string) => void;
@@ -19,7 +22,7 @@ interface Actions {
   upgradeDomain: (domainId: string) => void;
   expandLand: (mapId: string) => void;
   addDomain: (mapId: string, name: string, description: string) => string | null;
-  answerQuiz: (cardId: string, choiceIndex: number) => { correct: boolean; gained: number };
+  answerQuiz: (cardId: string, choiceIndex: number) => AnswerQuizResult;
   completeReading: (cardId: string) => number;
 }
 
@@ -52,7 +55,6 @@ export const useGameStore = create<Store>()(
           theme: 'last-war',
           resources: 0,
           combo: 0,
-          round: 0,
           landCapacity: { used: 0, total: INITIAL_LAND_CAPACITY },
           townHallLevel: 1,
           createdAt: Date.now(),
@@ -131,11 +133,12 @@ export const useGameStore = create<Store>()(
 
       answerQuiz: (cardId, choiceIndex) => {
         const card = get().cards[cardId] as QuizCard;
-        if (!card || card.type !== 'quiz') return { correct: false, gained: 0 };
+        if (!card || card.type !== 'quiz') return { correct: false, gained: 0, notDue: false };
+        const round = currentRound();
+        if (card.due > round) return { correct: false, gained: 0, notDue: true };
         const domain = get().domains[card.domainId];
         const map = get().maps[domain.mapId];
         const correct = choiceIndex === card.answerIndex;
-        const round = map.round + 1;
         const updated = applyQuizAnswer(card, correct, round);
         const combo = correct ? map.combo + 1 : 0;
         const gained = correct ? reviewGain(map.combo) : 0;
@@ -143,10 +146,10 @@ export const useGameStore = create<Store>()(
           cards: { ...s.cards, [cardId]: updated },
           maps: {
             ...s.maps,
-            [map.id]: { ...map, round, combo, resources: map.resources + gained },
+            [map.id]: { ...map, combo, resources: map.resources + gained },
           },
         }));
-        return { correct, gained };
+        return { correct, gained, notDue: false };
       },
 
       completeReading: (cardId) => {
@@ -162,7 +165,7 @@ export const useGameStore = create<Store>()(
         return gained;
       },
     }),
-    { name: 'knowledge-town-save-v1' }
+    { name: 'knowledge-town-save-v2' }
   )
 );
 

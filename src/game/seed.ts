@@ -50,7 +50,6 @@ export function createSeedMap(): TownMap {
     theme: 'last-war',
     resources: 0,
     combo: 0,
-    round: 0,
     landCapacity: { used: 5, total: 6 },
     townHallLevel: 1,
     createdAt: Date.now(),

@@ -47,7 +47,6 @@ export interface TownMap {
   theme: 'last-war';
   resources: number;
   combo: number;
-  round: number;
   landCapacity: LandCapacity;
   townHallLevel: number;
   createdAt: number;
