@@ -1,0 +1,100 @@
+import { useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import BuildingSprite from '../components/BuildingSprite';
+import QuizModal from '../components/QuizModal';
+import ReadingModal from '../components/ReadingModal';
+import { cardsForDomain, useGameStore } from '../game/store';
+import { appearanceStage, CATEGORY_LABEL, QUIZ_STAGE_LABEL, upgradeCost } from '../game/logic';
+import type { Card, QuizCard, ReadingCard } from '../game/types';
+
+export default function BuildingDetail() {
+  const { mapId, domainId } = useParams();
+  const navigate = useNavigate();
+  const map = useGameStore((s) => (mapId ? s.maps[mapId] : undefined));
+  const domain = useGameStore((s) => (domainId ? s.domains[domainId] : undefined));
+  const cards = useGameStore((s) => s.cards);
+  const upgradeDomain = useGameStore((s) => s.upgradeDomain);
+  const [activeCard, setActiveCard] = useState<Card | null>(null);
+
+  if (!map || !domain) {
+    return (
+      <div>
+        <p>找不到這棟建築。</p>
+        <button className="btn" onClick={() => navigate(-1)}>返回</button>
+      </div>
+    );
+  }
+
+  const domainCards = cardsForDomain(cards, domain.id);
+  const cost = upgradeCost(domain.level);
+  const cappedByHall = domain.level >= map.townHallLevel;
+
+  return (
+    <div>
+      <button className="btn" onClick={() => navigate(`/map/${map.id}`)}>← 返回城鎮</button>
+
+      <div className="panel building-detail-header">
+        <BuildingSprite category={domain.category} level={domain.level} size={96} />
+        <div style={{ flex: 1 }}>
+          <h1>{domain.name}</h1>
+          <p className="muted">{CATEGORY_LABEL[domain.category]} · {domain.description}</p>
+          <p>
+            Lv.{domain.level}（外觀階段 {appearanceStage(domain.level)}/5）
+            {cappedByHall && <span className="muted"> · 已達總部等級天花板</span>}
+          </p>
+        </div>
+        <div style={{ textAlign: 'right' }}>
+          <span className="resource-pill" style={{ marginBottom: 8, display: 'inline-flex' }}>
+            💎 {map.resources}
+          </span>
+          <div>
+            <button
+              className="btn btn-primary"
+              disabled={cappedByHall || map.resources < cost}
+              onClick={() => upgradeDomain(domain.id)}
+              title={cappedByHall ? '需先升級總部才能繼續升級此建築' : undefined}
+            >
+              升級（💎{cost}）
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <h3>知識卡片</h3>
+      <div className="card-grid">
+        {domainCards.map((c) => (
+          <div key={c.id} className="panel card-tile" onClick={() => setActiveCard(c)}>
+            {c.type === 'quiz' ? <QuizCardSummary card={c} /> : <ReadingCardSummary card={c} />}
+          </div>
+        ))}
+      </div>
+
+      {activeCard && activeCard.type === 'quiz' && (
+        <QuizModal card={activeCard} round={map.round} onClose={() => setActiveCard(null)} />
+      )}
+      {activeCard && activeCard.type === 'reading' && (
+        <ReadingModal card={activeCard} onClose={() => setActiveCard(null)} />
+      )}
+    </div>
+  );
+}
+
+function QuizCardSummary({ card }: { card: QuizCard }) {
+  return (
+    <>
+      <span className="card-tile__badge">🧠 問答</span>
+      <p>{card.question}</p>
+      <p className="muted">{QUIZ_STAGE_LABEL[card.stage]} · 連對 {card.streak}</p>
+    </>
+  );
+}
+
+function ReadingCardSummary({ card }: { card: ReadingCard }) {
+  return (
+    <>
+      <span className="card-tile__badge">📖 閱讀</span>
+      <p>{card.title}</p>
+      <p className="muted">{card.claimed ? '已完成閱讀' : `共 ${card.pages.length} 頁`}</p>
+    </>
+  );
+}
