@@ -5,7 +5,6 @@ import ResourceBar from '../components/ResourceBar';
 import VillagerLayer from '../components/VillagerLayer';
 import { useGameStore, domainsForMap } from '../game/store';
 import {
-  appearanceStage,
   canAfford,
   CATEGORY_LABEL,
   expansionCost,
@@ -15,6 +14,7 @@ import {
   splitCost,
   upgradeCost,
 } from '../game/logic';
+import { isoBounds, isoToScreen, ringPosition, type GridPos } from '../game/iso';
 
 export default function Town() {
   const { mapId } = useParams();
@@ -59,6 +59,19 @@ export default function Town() {
     if (id) navigate(`/map/${map!.id}/domain/${id}`);
   }
 
+  const townHallPos: GridPos = { col: 0, row: 0 };
+  const slotPositions = Array.from({ length: map.landCapacity.total }, (_, i) => ringPosition(i + 1));
+  const bounds = isoBounds([townHallPos, ...slotPositions]);
+
+  function tileStyle(pos: GridPos, zBoost = 0) {
+    const { x, y } = isoToScreen(pos);
+    return {
+      left: `calc(50% + ${x}px)`,
+      top: `calc(50% + ${y}px)`,
+      zIndex: 1000 + pos.row * 4 - pos.col + zBoost,
+    } as const;
+  }
+
   return (
     <div>
       <div className="town-header">
@@ -94,15 +107,21 @@ export default function Town() {
         </div>
       </div>
 
-      <div className="land-grid-wrapper">
-        <VillagerLayer count={villagerCount} />
-        <div className="land-grid">
-          {Array.from({ length: map.landCapacity.total }).map((_, i) => {
+      <div className="iso-canvas-scroll">
+        <div className="iso-canvas" style={{ minWidth: bounds.width, height: bounds.height }}>
+          <VillagerLayer count={villagerCount} />
+
+          <div className="iso-tile iso-tile--townhall" style={tileStyle(townHallPos, 500)}>
+            <BuildingSprite category="townhall" level={map.townHallLevel} size={72} />
+            <span className="iso-tile__label">總部 Lv.{map.townHallLevel}</span>
+          </div>
+
+          {slotPositions.map((pos, i) => {
             const d = ds.find((dd) => dd.slotIndex === i);
             if (!d) {
               return (
-                <div key={i} className="land-slot land-slot--empty">
-                  空地
+                <div key={i} className="iso-tile iso-tile--empty" style={tileStyle(pos)}>
+                  <div className="ground-tile" />
                 </div>
               );
             }
@@ -110,13 +129,15 @@ export default function Town() {
             return (
               <div
                 key={i}
-                className="land-slot"
+                className="iso-tile"
+                style={tileStyle(pos)}
                 onClick={() => navigate(`/map/${map.id}/domain/${d.id}`)}
               >
-                <BuildingSprite category={d.category} level={d.level} label={d.name} />
-                <span className="land-slot__name">{d.name}</span>
-                <span className="muted">
-                  Lv.{d.level} 階段{appearanceStage(d.level)} {capped && '🔒'}
+                <BuildingSprite category={d.category} level={d.level} size={56} label={d.name} />
+                <span className="iso-tile__label">
+                  {d.name}
+                  <br />
+                  Lv.{d.level} {capped && '🔒'}
                 </span>
               </div>
             );
