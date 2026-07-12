@@ -5,7 +5,7 @@ import { appearanceStage, MAX_APPEARANCE_LEVEL } from '../game/logic';
 import { gridPosition, isoBounds, isoToScreen } from '../game/iso';
 
 const ISLAND_TILE_W = 260;
-const ISLAND_TILE_H = 130;
+const ISLAND_TILE_H = 260;
 
 export default function WorldMap() {
   const maps = useGameStore((s) => s.maps);

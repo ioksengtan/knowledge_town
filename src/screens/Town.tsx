@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import BuildingSprite from '../components/BuildingSprite';
 import ResourceBar from '../components/ResourceBar';
@@ -14,7 +14,9 @@ import {
   splitCost,
   upgradeCost,
 } from '../game/logic';
-import { isoBounds, isoToScreen, ringPosition, type GridPos } from '../game/iso';
+import { generateVillagerSpots, isoBounds, isoToScreen, ringPosition, type ExclusionRect, type GridPos } from '../game/iso';
+
+const TOWN_HALL_POS: GridPos = { col: 0, row: 0 };
 
 export default function Town() {
   const { mapId } = useParams();
@@ -29,6 +31,39 @@ export default function Town() {
   const [newName, setNewName] = useState('');
   const [newDesc, setNewDesc] = useState('');
 
+  const ds = useMemo(() => (map ? domainsForMap(domains, map.id) : []), [domains, map]);
+
+  const totalSlots = map?.landCapacity.total ?? 0;
+  const slotPositions = useMemo(
+    () => Array.from({ length: totalSlots }, (_, i) => ringPosition(i + 1)),
+    [totalSlots]
+  );
+  const bounds = useMemo(() => isoBounds([TOWN_HALL_POS, ...slotPositions]), [slotPositions]);
+
+  // Villagers are purely decorative (spec 5.11) — count scales with overall
+  // development, no data model involved. Formula is this implementation's
+  // default; see docs/implementation-decisions.md.
+  const villagerCount = map
+    ? Math.min(10, Math.max(1, Math.floor((map.townHallLevel + ds.reduce((sum, d) => sum + d.level, 0)) / 3)))
+    : 0;
+
+  // Villagers must never render on top of a building or its label — spots
+  // are rejection-sampled against every occupied tile's real bounding box
+  // (sprite + label), so overlap isn't possible by construction.
+  const villagerSpots = useMemo(() => {
+    if (!map) return [];
+    const exclusions: ExclusionRect[] = [];
+    const thScreen = isoToScreen(TOWN_HALL_POS);
+    exclusions.push({ x: thScreen.x, y: thScreen.y, halfWidth: 60, top: 185, bottom: 15 });
+    slotPositions.forEach((pos, i) => {
+      if (!ds.find((dd) => dd.slotIndex === i)) return;
+      const { x, y } = isoToScreen(pos);
+      exclusions.push({ x, y, halfWidth: 55, top: 170, bottom: 15 });
+    });
+    const spots = generateVillagerSpots(villagerCount, bounds, exclusions);
+    return spots.map((s) => ({ ...s, duration: 5 + Math.random() * 5, delay: Math.random() * 4 }));
+  }, [map, villagerCount, bounds, slotPositions, ds]);
+
   if (!map) {
     return (
       <div>
@@ -38,17 +73,10 @@ export default function Town() {
     );
   }
 
-  const ds = domainsForMap(domains, map.id);
   const hallCost = splitCost(upgradeCost(map.townHallLevel));
   const expansionsSoFar = Math.round((map.landCapacity.total - INITIAL_LAND_CAPACITY) / LAND_PER_EXPANSION);
   const expandCost = splitCost(expansionCost(expansionsSoFar));
   const landFull = map.landCapacity.used >= map.landCapacity.total;
-
-  // Villagers are purely decorative (spec 5.11) — count scales with overall
-  // development, no data model involved. Formula is this implementation's
-  // default; see docs/implementation-decisions.md.
-  const development = map.townHallLevel + ds.reduce((sum, d) => sum + d.level, 0);
-  const villagerCount = Math.min(10, Math.max(1, Math.floor(development / 3)));
 
   function handleAddDomain() {
     if (!newName.trim()) return;
@@ -58,10 +86,6 @@ export default function Town() {
     setNewDesc('');
     if (id) navigate(`/map/${map!.id}/domain/${id}`);
   }
-
-  const townHallPos: GridPos = { col: 0, row: 0 };
-  const slotPositions = Array.from({ length: map.landCapacity.total }, (_, i) => ringPosition(i + 1));
-  const bounds = isoBounds([townHallPos, ...slotPositions]);
 
   function tileStyle(pos: GridPos, zBoost = 0) {
     const { x, y } = isoToScreen(pos);
@@ -109,10 +133,10 @@ export default function Town() {
 
       <div className="iso-canvas-scroll">
         <div className="iso-canvas" style={{ minWidth: bounds.width, height: bounds.height }}>
-          <VillagerLayer count={villagerCount} />
+          <VillagerLayer spots={villagerSpots} />
 
-          <div className="iso-tile iso-tile--townhall" style={tileStyle(townHallPos, 500)}>
-            <BuildingSprite category="townhall" level={map.townHallLevel} size={72} />
+          <div className="iso-tile iso-tile--townhall" style={tileStyle(TOWN_HALL_POS, 500)}>
+            <BuildingSprite category="townhall" level={map.townHallLevel} size={60} />
             <span className="iso-tile__label">總部 Lv.{map.townHallLevel}</span>
           </div>
 
@@ -133,7 +157,7 @@ export default function Town() {
                 style={tileStyle(pos)}
                 onClick={() => navigate(`/map/${map.id}/domain/${d.id}`)}
               >
-                <BuildingSprite category={d.category} level={d.level} size={56} label={d.buildingName} />
+                <BuildingSprite category={d.category} level={d.level} size={46} label={d.buildingName} />
                 <span className="iso-tile__label">
                   <strong>{d.buildingName}</strong>
                   <br />
