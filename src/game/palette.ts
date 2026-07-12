@@ -16,10 +16,14 @@ export const CATEGORY_ICON: Record<BuildingCategory, string> = {
 };
 
 // Town Hall isn't one of the three categories — it's the map's single most
-// important building, so it gets its own placeholder palette (gold-leaning,
-// distinct from all three category hues) rather than borrowing one.
+// important building, so it gets its own placeholder palette. This must
+// stay visually distinct from `--accent`/`--accent-strong` (the UI's own
+// button/highlight color) — an earlier version topped out at the exact
+// same gold as the UI accent, so a maxed-out Town Hall read as a stray
+// highlighted button rather than a building. Uses a crimson/command-red
+// progression instead (also distinct from all three category hues).
 export const TOWNHALL_BODY: [string, string, string, string, string] = [
-  '#453a2f', '#5f4f33', '#7a662f', '#a3872f', '#d4a941',
+  '#3d2626', '#54302f', '#6e3535', '#8f3f3f', '#b8514a',
 ];
 export const TOWNHALL_ICON = '🏛️';
 

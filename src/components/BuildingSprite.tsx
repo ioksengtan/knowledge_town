@@ -54,7 +54,7 @@ function PlaceholderSprite({ category, stage, size }: { category: BuildingCatego
         style={{
           width: size * 0.86,
           height: roofHeight,
-          background: color,
+          background: `linear-gradient(135deg, ${color}, #14160f 150%)`,
           boxShadow: `0 0 0 2px rgba(240,199,102,${trim}) inset`,
         }}
       />
