@@ -1,4 +1,8 @@
-export type BuildingCategory = 'production' | 'training' | 'hero' | 'rnd';
+export type BuildingCategory = 'production' | 'training' | 'rnd';
+
+export type ResourceType = 'wood' | 'ore' | 'food';
+
+export type ResourcePool = Record<ResourceType, number>;
 
 export interface QuizCard {
   id: string;
@@ -7,7 +11,8 @@ export interface QuizCard {
   question: string;
   choices: string[];
   answerIndex: number;
-  explanation?: string;
+  example?: string;
+  courseId?: string | null;
   streak: number;
   interval: number;
   stage: number; // 0-3, growth stage for the card itself (🌱🌿🌳✨)
@@ -26,6 +31,7 @@ export interface ReadingCard {
   type: 'reading';
   title: string;
   source?: string;
+  courseId?: string | null;
   pages: ReadingPage[];
   claimed: boolean;
 }
@@ -40,6 +46,15 @@ export interface Domain {
   category: BuildingCategory;
   level: number;
   slotIndex: number; // position in the map's shared buildable land, in build order
+  isResearchCenter?: boolean; // at most one rnd-category domain per map
+}
+
+export interface Course {
+  id: string;
+  name: string;
+  domainId: string; // must point to a domain with isResearchCenter = true
+  lessonIds: string[]; // Card ids
+  completed: boolean;
 }
 
 export interface LandCapacity {
@@ -51,7 +66,7 @@ export interface TownMap {
   id: string;
   name: string;
   theme: 'last-war';
-  resources: number;
+  resources: ResourcePool;
   combo: number;
   landCapacity: LandCapacity;
   townHallLevel: number;
@@ -62,5 +77,6 @@ export interface GameState {
   maps: Record<string, TownMap>;
   domains: Record<string, Domain>;
   cards: Record<string, Card>;
+  courses: Record<string, Course>;
   activeMapId: string | null;
 }

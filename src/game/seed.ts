@@ -1,5 +1,5 @@
 import type { Card, Domain, QuizCard, ReadingCard, ReadingPage, TownMap } from './types';
-import { categoryHash } from './logic';
+import { categoryHash, emptyResources } from './logic';
 
 export const SEED_MAP_ID = 'map-1';
 
@@ -21,7 +21,7 @@ function quiz(
   question: string,
   choices: string[],
   answerIndex: number,
-  explanation?: string
+  example?: string
 ): QuizCard {
   return {
     id,
@@ -30,7 +30,7 @@ function quiz(
     question,
     choices,
     answerIndex,
-    explanation,
+    example,
     streak: 0,
     interval: 1,
     stage: 0,
@@ -54,7 +54,7 @@ export function createSeedMap(): TownMap {
     id: SEED_MAP_ID,
     name: '第一座城鎮',
     theme: 'last-war',
-    resources: 0,
+    resources: emptyResources(),
     combo: 0,
     landCapacity: { used: 6, total: 6 },
     townHallLevel: 1,

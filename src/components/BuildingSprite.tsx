@@ -1,9 +1,9 @@
 import type { BuildingCategory } from '../game/types';
 import { appearanceStage } from '../game/logic';
-import { bodyColor, CATEGORY_ICON, trimOpacity } from '../game/palette';
+import { bodyColor, CATEGORY_ICON, TOWNHALL_ICON, trimOpacity } from '../game/palette';
 
 interface Props {
-  category: BuildingCategory;
+  category: BuildingCategory | 'townhall';
   level: number;
   size?: number;
   label?: string;
@@ -39,7 +39,7 @@ export default function BuildingSprite({ category, level, size = 88, label }: Pr
           border: `1px solid rgba(240,199,102,${trim})`,
         }}
       >
-        <span className="building-sprite__icon">{CATEGORY_ICON[category]}</span>
+        <span className="building-sprite__icon">{category === 'townhall' ? TOWNHALL_ICON : CATEGORY_ICON[category]}</span>
       </div>
       <div className="building-sprite__stage">
         {'★'.repeat(stage)}

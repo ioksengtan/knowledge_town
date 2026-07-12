@@ -1,15 +1,20 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import BuildingSprite from '../components/BuildingSprite';
+import ResourceBar from '../components/ResourceBar';
+import VillagerLayer from '../components/VillagerLayer';
 import { useGameStore, domainsForMap } from '../game/store';
 import {
   appearanceStage,
+  canAfford,
+  CATEGORY_LABEL,
   expansionCost,
+  formatCost,
   INITIAL_LAND_CAPACITY,
   LAND_PER_EXPANSION,
+  splitCost,
   upgradeCost,
 } from '../game/logic';
-import { CATEGORY_LABEL } from '../game/logic';
 
 export default function Town() {
   const { mapId } = useParams();
@@ -34,10 +39,16 @@ export default function Town() {
   }
 
   const ds = domainsForMap(domains, map.id);
-  const hallCost = upgradeCost(map.townHallLevel);
+  const hallCost = splitCost(upgradeCost(map.townHallLevel));
   const expansionsSoFar = Math.round((map.landCapacity.total - INITIAL_LAND_CAPACITY) / LAND_PER_EXPANSION);
-  const expandCost = expansionCost(expansionsSoFar);
+  const expandCost = splitCost(expansionCost(expansionsSoFar));
   const landFull = map.landCapacity.used >= map.landCapacity.total;
+
+  // Villagers are purely decorative (spec 5.11) — count scales with overall
+  // development, no data model involved. Formula is this implementation's
+  // default; see docs/implementation-decisions.md.
+  const development = map.townHallLevel + ds.reduce((sum, d) => sum + d.level, 0);
+  const villagerCount = Math.min(10, Math.max(1, Math.floor(development / 3)));
 
   function handleAddDomain() {
     if (!newName.trim()) return;
@@ -55,27 +66,27 @@ export default function Town() {
           <h1>{map.name}</h1>
           <p className="muted">地塊 {map.landCapacity.used} / {map.landCapacity.total}</p>
         </div>
-        <span className="resource-pill">💎 {map.resources}</span>
+        <ResourceBar resources={map.resources} />
       </div>
 
       <div className="panel town-hall-card">
-        <BuildingSprite category="hero" level={map.townHallLevel} size={72} label="總部" />
+        <BuildingSprite category="townhall" level={map.townHallLevel} size={72} label="總部" />
         <div style={{ flex: 1 }}>
           <h3>總部（Town Hall）Lv.{map.townHallLevel}</h3>
           <p className="muted">
             總部等級是這張地圖所有建築的等級天花板——任何建築都不能升到超過總部目前等級。
           </p>
         </div>
-        <button className="btn btn-primary" disabled={map.resources < hallCost} onClick={() => upgradeTownHall(map.id)}>
-          升級總部（💎{hallCost}）
+        <button className="btn btn-primary" disabled={!canAfford(map.resources, hallCost)} onClick={() => upgradeTownHall(map.id)}>
+          升級總部（{formatCost(hallCost)}）
         </button>
       </div>
 
       <div className="land-grid-header">
         <h3>城鎮可建地</h3>
         <div style={{ display: 'flex', gap: 8 }}>
-          <button className="btn" onClick={() => expandLand(map.id)} disabled={map.resources < expandCost}>
-            擴地 +{LAND_PER_EXPANSION}（💎{expandCost}）
+          <button className="btn" onClick={() => expandLand(map.id)} disabled={!canAfford(map.resources, expandCost)}>
+            擴地 +{LAND_PER_EXPANSION}（{formatCost(expandCost)}）
           </button>
           <button className="btn btn-primary" disabled={landFull} onClick={() => setShowAdd(true)}>
             新建領域
@@ -83,31 +94,34 @@ export default function Town() {
         </div>
       </div>
 
-      <div className="land-grid">
-        {Array.from({ length: map.landCapacity.total }).map((_, i) => {
-          const d = ds.find((dd) => dd.slotIndex === i);
-          if (!d) {
+      <div className="land-grid-wrapper">
+        <VillagerLayer count={villagerCount} />
+        <div className="land-grid">
+          {Array.from({ length: map.landCapacity.total }).map((_, i) => {
+            const d = ds.find((dd) => dd.slotIndex === i);
+            if (!d) {
+              return (
+                <div key={i} className="land-slot land-slot--empty">
+                  空地
+                </div>
+              );
+            }
+            const capped = d.level >= map.townHallLevel;
             return (
-              <div key={i} className="land-slot land-slot--empty">
-                空地
+              <div
+                key={i}
+                className="land-slot"
+                onClick={() => navigate(`/map/${map.id}/domain/${d.id}`)}
+              >
+                <BuildingSprite category={d.category} level={d.level} label={d.name} />
+                <span className="land-slot__name">{d.name}</span>
+                <span className="muted">
+                  Lv.{d.level} 階段{appearanceStage(d.level)} {capped && '🔒'}
+                </span>
               </div>
             );
-          }
-          const capped = d.level >= map.townHallLevel;
-          return (
-            <div
-              key={i}
-              className="land-slot"
-              onClick={() => navigate(`/map/${map.id}/domain/${d.id}`)}
-            >
-              <BuildingSprite category={d.category} level={d.level} label={d.name} />
-              <span className="land-slot__name">{d.name}</span>
-              <span className="muted">
-                Lv.{d.level} 階段{appearanceStage(d.level)} {capped && '🔒'}
-              </span>
-            </div>
-          );
-        })}
+          })}
+        </div>
       </div>
 
       {showAdd && (
