@@ -15,12 +15,18 @@ export interface QuizCard {
   claimed: boolean;
 }
 
+export interface ReadingPage {
+  content: string;
+  example?: string;
+}
+
 export interface ReadingCard {
   id: string;
   domainId: string;
   type: 'reading';
   title: string;
-  pages: string[];
+  source?: string;
+  pages: ReadingPage[];
   claimed: boolean;
 }
 

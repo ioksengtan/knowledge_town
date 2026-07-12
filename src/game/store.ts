@@ -165,7 +165,7 @@ export const useGameStore = create<Store>()(
         return gained;
       },
     }),
-    { name: 'knowledge-town-save-v2' }
+    { name: 'knowledge-town-save-v3' }
   )
 );
 

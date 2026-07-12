@@ -1,4 +1,4 @@
-import type { Card, Domain, QuizCard, ReadingCard, TownMap } from './types';
+import type { Card, Domain, QuizCard, ReadingCard, ReadingPage, TownMap } from './types';
 import { categoryHash } from './logic';
 
 export const SEED_MAP_ID = 'map-1';
@@ -39,8 +39,14 @@ function quiz(
   };
 }
 
-function reading(id: string, domainId: string, title: string, pages: string[]): ReadingCard {
-  return { id, domainId, type: 'reading', title, pages, claimed: false };
+function reading(
+  id: string,
+  domainId: string,
+  title: string,
+  pages: ReadingPage[],
+  source?: string
+): ReadingCard {
+  return { id, domainId, type: 'reading', title, source, pages, claimed: false };
 }
 
 export function createSeedMap(): TownMap {
@@ -50,7 +56,7 @@ export function createSeedMap(): TownMap {
     theme: 'last-war',
     resources: 0,
     combo: 0,
-    landCapacity: { used: 5, total: 6 },
+    landCapacity: { used: 6, total: 6 },
     townHallLevel: 1,
     createdAt: Date.now(),
   };
@@ -63,6 +69,7 @@ export function createSeedDomains(): Domain[] {
     domain('d-swe', '軟體工程', '從版本控制到系統設計，累積寫出可維護軟體的實務知識。', 2),
     domain('d-startup', '新創產業', '募資輪次、商業模式、產業趨勢，理解新創世界的運作邏輯。', 3),
     domain('d-people', '科技人物觀察', '認識形塑科技產業的重要人物與他們的關鍵決策。', 4),
+    domain('domain_abstraction_thinking', '抽象化思維', '從 SICP 到 coding agent，理解「往上一層抽象」如何持續改變工程師的工作方式。', 5),
   ];
 }
 
@@ -106,11 +113,11 @@ export function createSeedCards(): Card[] {
       'd-ai',
       '大型語言模型的訓練三階段',
       [
-        '大型語言模型的訓練通常分為三個階段：預訓練（Pretraining）、監督式微調（SFT），以及基於人類回饋的強化學習（RLHF）。',
-        '預訓練階段，模型在海量文字語料上學習「預測下一個詞」，藉此吸收語言結構與世界知識，這個階段的運算成本最為龐大。',
-        '監督式微調階段，團隊準備高品質的問答範例，教模型以「助理」的口吻回應指令，而不只是續寫文字。',
-        'RLHF 階段則讓人類標註員對模型的多個回覆進行偏好排序，訓練一個獎勵模型，再用它引導語言模型產生更符合人類期待、更安全的輸出。',
-        '這三階段環環相扣：預訓練決定模型的知識與能力上限，後兩階段則決定模型「願不願意、懂不懂得」把能力用在對的地方。',
+        { content: '大型語言模型的訓練通常分為三個階段：預訓練（Pretraining）、監督式微調（SFT），以及基於人類回饋的強化學習（RLHF）。' },
+        { content: '預訓練階段，模型在海量文字語料上學習「預測下一個詞」，藉此吸收語言結構與世界知識，這個階段的運算成本最為龐大。' },
+        { content: '監督式微調階段，團隊準備高品質的問答範例，教模型以「助理」的口吻回應指令，而不只是續寫文字。' },
+        { content: 'RLHF 階段則讓人類標註員對模型的多個回覆進行偏好排序，訓練一個獎勵模型，再用它引導語言模型產生更符合人類期待、更安全的輸出。' },
+        { content: '這三階段環環相扣：預訓練決定模型的知識與能力上限，後兩階段則決定模型「願不願意、懂不懂得」把能力用在對的地方。' },
       ]
     ),
 
@@ -248,6 +255,98 @@ export function createSeedCards(): Card[] {
       ['山姆奧特曼', '賈伯斯', '祖克柏', '貝佐斯'],
       0,
       'Sam Altman 為 OpenAI 執行長，在他的領導下 OpenAI 推出了 ChatGPT，成為近年生成式 AI 浪潮的重要推手。'
+    ),
+
+    // 抽象化思維
+    reading(
+      'card_abstraction_reading_01',
+      'domain_abstraction_thinking',
+      'Abstraction Is All You Need',
+      [
+        {
+          content:
+            '80年代 MIT 有一門傳奇課程 SICP，由 Hal Abelson 與 Gerald Sussman 開創。課程選用業界幾乎沒人用的 Scheme（LISP 方言），而非當時熱門的 Fortran/Pascal/C。學生一度羨慕學「找得到工作」語言的人，後來才明白：SICP 教的是程式設計的根本原理，不是某個語言的語法糖。',
+          example:
+            '這就像學做菜時，先搞懂食材特性、火候原理、調味邏輯，而不是死背某一道菜的食譜步驟。懂原理的人換一種食材、換一個廚房都能舉一反三；只會照食譜的人，食譜一變就卡住。',
+        },
+        {
+          content:
+            '電腦科學先驅 Edsger Dijkstra 見證程式設計從機器碼進化到高階語言＋編譯器，省去大量繁瑣工作。但他也觀察到：程式設計師只是開始在更大規模上寫出「大塊看不懂的程式碼」——高階的 bug 取代了低階的 bug，即所謂「compiler slop」。',
+          example:
+            '有了食物調理機、電子鍋這些工具後，你可以一次處理更複雜的料理——但也更容易做出「份量抓歪、味道整體失衡」的大鍋菜，而不是像新手那樣頂多切壞一顆洋蔥。',
+        },
+        {
+          content:
+            'SICP 教會 Maeda 最核心的觀念是「抽象化」：持續往上一層走，而不是卡在現在這一層。抽象化不會消除困難，只會把困難往上移——從機械式執行，移到判斷力、發明、清晰度、責任感。',
+          example:
+            '只會照食譜的人，換一道沒做過的菜就卡住；懂烹飪原理的人，難度不會消失，只是換了地方——他要面對的是「這鍋菜現在缺什麼味道」，而不是「這一步加多少調味料」。',
+        },
+        {
+          content:
+            'Coding agent 不是終結程式設計，而是改變程式設計發生的位置。過去稀缺的「打程式碼」技能，現在比較不是打每一行符號，而是表達意圖、設計系統、評估產出、為結果負責。',
+          example:
+            '以前廚師的價值在「會不會親手完成每道工序」；有了智慧廚具之後，價值變成「嚐得出這鍋菜少了什麼、願不願意為上桌的成品負責」。',
+        },
+        {
+          content:
+            '今天的訣竅不是糾結在「slop」這個字眼，而是思考抽象化的力量——不該退回上一層，而該在上面那一層變得更強。運算革命的本質，一直是發明更好的工具，自動化昨天的工作、揭露明天該具備的紀律。或許抽象化真的就是你所需要的一切。',
+          example:
+            '懂烹飪原理的人不會因為有了智慧廚具就退回去死背食譜，反而會把心力花在「這道菜整體對不對味」的判斷上——過去學廚藝的功夫沒有浪費，反而在新工具出現後更值錢。',
+        },
+      ],
+      'LinkedIn, John Maeda, 2026/7/12'
+    ),
+    quiz(
+      'card_abstraction_quiz_01',
+      'domain_abstraction_thinking',
+      'Dijkstra 觀察到高階語言／編譯器普及後，程式設計師遇到了什麼新問題？',
+      [
+        '寫程式的速度變慢，因為要學習新工具',
+        '他們開始在更大規模上寫出「大塊看不懂的程式碼」，高階 bug 取代了低階 bug',
+        '完全不再需要理解程式邏輯，只靠編譯器自動除錯',
+        '低階的機器碼錯誤變得比以前更難修復',
+      ],
+      1,
+      '這就是 Dijkstra 所說的「compiler slop」——工具讓人能處理更大規模的複雜度，但也更容易在那個規模上犯錯。'
+    ),
+    quiz(
+      'card_abstraction_quiz_02',
+      'domain_abstraction_thinking',
+      '根據 Dijkstra 的觀點，抽象化真正的作用是什麼？',
+      [
+        '完全消除程式設計中的困難與複雜度',
+        '只是把程式碼變得更精簡、更容易背誦',
+        '把困難從機械式執行，往上移到判斷力、發明、清晰度與責任感的層次',
+        '讓工程師不再需要對系統的正確性負責',
+      ],
+      2,
+      '抽象化不是讓困難消失，而是把困難「搬家」——搬到更高層次的判斷與責任上。'
+    ),
+    quiz(
+      'card_abstraction_quiz_03',
+      'domain_abstraction_thinking',
+      'Maeda 認為 coding agent 正在做什麼，而不是「終結程式設計」？',
+      [
+        '讓程式設計這個職業徹底消失，不再需要工程師',
+        '只是加快打字速度，讓工程師寫更多行程式碼',
+        '把所有設計決策都交給 AI，工程師不再需要做判斷',
+        '改變程式設計發生的位置——技能重心從打程式碼，轉移到表達意圖、設計系統、評估產出、為結果負責',
+      ],
+      3,
+      'coding agent 接手的是「打字」這個機械式的部分，判斷力、系統設計與責任感反而變得更重要，而不是變得不重要。'
+    ),
+    quiz(
+      'card_abstraction_quiz_04',
+      'domain_abstraction_thinking',
+      'SICP 選用 Scheme 這個業界冷門語言授課，最終教會學生的核心觀念是什麼？',
+      [
+        '如何用 Scheme 找到業界的熱門工作機會',
+        '如何把 Scheme 程式碼轉換成 Fortran 或 C',
+        '抽象化——持續往上一層思考，而不是卡在眼前這一層',
+        '背熟 Scheme 語法比理解程式原理更重要',
+      ],
+      2,
+      'SICP 刻意不教「找得到工作」的熱門語言，就是要讓學生學到不隨語言/工具改朝換代而過時的根本原理。'
     ),
   ];
 }
