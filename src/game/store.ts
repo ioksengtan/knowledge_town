@@ -11,6 +11,7 @@ import {
   currentRound,
   emptyResources,
   expansionCost,
+  generateBuildingName,
   INITIAL_LAND_CAPACITY,
   LAND_PER_EXPANSION,
   reviewGain,
@@ -135,12 +136,17 @@ export const useGameStore = create<Store>()(
         if (!map) return null;
         if (map.landCapacity.used >= map.landCapacity.total) return null;
         const id = `domain-${Date.now()}`;
+        const category = categoryHash(name);
+        const siblingNames = domainsForMap(get().domains, mapId)
+          .filter((d) => d.category === category)
+          .map((d) => d.buildingName);
         const domain: Domain = {
           id,
           mapId,
           name,
+          buildingName: generateBuildingName(category, siblingNames),
           description,
-          category: categoryHash(name),
+          category,
           level: 1,
           slotIndex: map.landCapacity.used,
         };
@@ -228,7 +234,7 @@ export const useGameStore = create<Store>()(
         return { gained, resourceType, courseCompleted };
       },
     }),
-    { name: 'knowledge-town-save-v4' }
+    { name: 'knowledge-town-save-v5' }
   )
 );
 

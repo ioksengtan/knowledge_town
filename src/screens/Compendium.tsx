@@ -22,7 +22,7 @@ export default function Compendium() {
               const dCards = cardsForDomain(cards, d.id);
               return (
                 <div key={d.id} className="compendium-domain">
-                  <h3>{CATEGORY_LABEL[d.category]} · {d.name}</h3>
+                  <h3>{CATEGORY_LABEL[d.category]} · {d.buildingName} · {d.name}</h3>
                   <div className="compendium-cards">
                     {dCards.map((c) => (
                       <span key={c.id} className={`compendium-chip ${cardDone(c) ? 'compendium-chip--done' : ''}`}>

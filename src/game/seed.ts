@@ -3,11 +3,12 @@ import { categoryHash, emptyResources } from './logic';
 
 export const SEED_MAP_ID = 'map-1';
 
-function domain(id: string, name: string, description: string, slotIndex: number): Domain {
+function domain(id: string, name: string, buildingName: string, description: string, slotIndex: number): Domain {
   return {
     id,
     mapId: SEED_MAP_ID,
     name,
+    buildingName,
     description,
     category: categoryHash(name),
     level: 1,
@@ -64,12 +65,12 @@ export function createSeedMap(): TownMap {
 
 export function createSeedDomains(): Domain[] {
   return [
-    domain('d-ai', 'AI 與機器學習', '從類神經網路到大型語言模型，追蹤 AI 領域的核心技術演進。', 0),
-    domain('d-chip', '晶片與硬體', '半導體製程、GPU 架構、先進封裝——認識驅動運算的物理基礎。', 1),
-    domain('d-swe', '軟體工程', '從版本控制到系統設計，累積寫出可維護軟體的實務知識。', 2),
-    domain('d-startup', '新創產業', '募資輪次、商業模式、產業趨勢，理解新創世界的運作邏輯。', 3),
-    domain('d-people', '科技人物觀察', '認識形塑科技產業的重要人物與他們的關鍵決策。', 4),
-    domain('domain_abstraction_thinking', '抽象化思維', '從 SICP 到 coding agent，理解「往上一層抽象」如何持續改變工程師的工作方式。', 5),
+    domain('d-ai', 'AI 與機器學習', '糧倉', '從類神經網路到大型語言模型，追蹤 AI 領域的核心技術演進。', 0),
+    domain('d-chip', '晶片與硬體', '煉製廠', '半導體製程、GPU 架構、先進封裝——認識驅動運算的物理基礎。', 1),
+    domain('d-swe', '軟體工程', '培訓基地', '從版本控制到系統設計，累積寫出可維護軟體的實務知識。', 2),
+    domain('d-startup', '新創產業', '教育訓練處', '募資輪次、商業模式、產業趨勢，理解新創世界的運作邏輯。', 3),
+    domain('d-people', '科技人物觀察', '研究所', '認識形塑科技產業的重要人物與他們的關鍵決策。', 4),
+    domain('domain_abstraction_thinking', '抽象化思維', '物資集散地', '從 SICP 到 coding agent，理解「往上一層抽象」如何持續改變工程師的工作方式。', 5),
   ];
 }
 

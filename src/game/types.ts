@@ -41,7 +41,8 @@ export type Card = QuizCard | ReadingCard;
 export interface Domain {
   id: string;
   mapId: string;
-  name: string;
+  name: string; // the knowledge topic (e.g. "AI 與機器學習") — drives category/cards, not the in-town building label
+  buildingName: string; // what the building is called in the town (e.g. "研究所") — distinct from the topic it houses
   description: string;
   category: BuildingCategory;
   level: number;

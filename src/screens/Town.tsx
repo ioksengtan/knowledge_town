@@ -133,9 +133,11 @@ export default function Town() {
                 style={tileStyle(pos)}
                 onClick={() => navigate(`/map/${map.id}/domain/${d.id}`)}
               >
-                <BuildingSprite category={d.category} level={d.level} size={56} label={d.name} />
+                <BuildingSprite category={d.category} level={d.level} size={56} label={d.buildingName} />
                 <span className="iso-tile__label">
-                  {d.name}
+                  <strong>{d.buildingName}</strong>
+                  <br />
+                  <span className="iso-tile__label-sub">{d.name}</span>
                   <br />
                   Lv.{d.level} {capped && '🔒'}
                 </span>
@@ -150,7 +152,7 @@ export default function Town() {
           <div className="panel modal-panel" style={{ width: 400 }} onClick={(e) => e.stopPropagation()}>
             <h3>新建領域</h3>
             <p className="muted">
-              系統會依名稱自動指派分類（{Object.values(CATEGORY_LABEL).join(' / ')}），決定造型。
+              系統會依名稱自動指派分類（{Object.values(CATEGORY_LABEL).join(' / ')}），決定造型，並自動取一個城鎮建築名稱（例如「糧倉」「研究所」）——這個名稱跟你輸入的知識主題名稱是分開的兩件事。
             </p>
             <input
               className="text-input"

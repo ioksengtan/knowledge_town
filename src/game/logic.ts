@@ -100,6 +100,26 @@ export const RESOURCE_LABEL: Record<ResourceType, string> = {
   food: '🌾 糧食',
 };
 
+// A building's in-town name is a separate concept from the knowledge topic
+// it houses (Domain.name) — see docs/implementation-decisions.md. Pools are
+// themed to match each category's art direction (art-spec.md §4) but
+// deliberately avoid reusing any of the 5 appearance-stage names so the two
+// labels don't read as duplicates.
+const BUILDING_NAME_POOL: Record<BuildingCategory, string[]> = {
+  production: ['糧倉', '煉製廠', '物資集散地', '補給站', '屯糧要塞', '轉運倉庫'],
+  training: ['培訓基地', '教育訓練處', '技術學堂', '人才培育中心', '實務工坊', '進修所'],
+  rnd: ['研究所', '技術中心', '情報局', '觀測站', '智庫', '實驗基地'],
+};
+
+export function generateBuildingName(category: BuildingCategory, existingNames: string[]): string {
+  const pool = BUILDING_NAME_POOL[category];
+  const unused = pool.find((n) => !existingNames.includes(n));
+  if (unused) return unused;
+  let i = 2;
+  while (existingNames.includes(`${pool[0]} ${i}`)) i++;
+  return `${pool[0]} ${i}`;
+}
+
 export const RESOURCE_ICON: Record<ResourceType, string> = {
   wood: '🪵',
   ore: '⛏️',

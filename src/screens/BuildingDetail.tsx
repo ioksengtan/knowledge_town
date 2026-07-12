@@ -51,6 +51,7 @@ export default function BuildingDetail() {
       <div className="panel building-detail-header">
         <BuildingSprite category={domain.category} level={domain.level} size={96} />
         <div style={{ flex: 1 }}>
+          <span className="building-flavor-name">🏷️ {domain.buildingName}</span>
           <h1>{domain.name}</h1>
           <p className="muted">
             {CATEGORY_LABEL[domain.category]} · 產出 {RESOURCE_LABEL[resourceType]} · {domain.description}
